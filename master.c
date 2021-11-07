@@ -60,16 +60,20 @@ int main()
     int n1,n2,n3;
     int fds_1[2],fds_2[2],fds_3[3];
     pipe(fds_1);
-    char buf_1[30],buf_3[30];
+    char buf_1[30],buf_3[30],buf_2[30];
     c1_pid=fork();
     if(c1_pid!=0){
         wait(NULL);
         close(fds_1[1]);
         read(fds_1[0],buf_1,25);
         printf("c1 sent %d to parent via pipe\n",atoi(buf_1));
+        pipe(fds_2);
         c2_pid=fork();
         if(c2_pid!=0){
             wait(NULL);
+            close(fds_2[1]);
+            read(fds_2[0],buf_2,14);
+            printf("%s\n",buf_2);
             pipe(fds_3);
             c3_pid=fork();
             if(c3_pid!=0){
@@ -114,7 +118,9 @@ int main()
 			    exit(1);
             }
             pthread_join(thread_id_2,NULL);
-            printf("done printing\n");
+            // printf("done printing\n");
+            close(fds_2[0]);
+            write(fds_2[1],"Done Printing",14);
         }
     }
     else{
