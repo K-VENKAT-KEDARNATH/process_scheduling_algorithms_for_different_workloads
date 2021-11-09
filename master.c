@@ -34,7 +34,7 @@ int* shmPtr;
 
 typedef struct thread_data {
    int n;
-   int result;
+   long long int result;
    bool finished;
 }thread_data;
 
@@ -60,7 +60,7 @@ void *process_c2(void *data){
 }
 
 void *process_c1(void *data){
-    int sum=0;
+    long long int sum=0;
     thread_data *tdata=(thread_data*)data;
     // int* n1_ptr=(int*)n1;
     int n=tdata->n;
@@ -88,7 +88,7 @@ void *process_c3(void *data){
     int num;
     thread_data *tdata=(thread_data*)data;
     int n=tdata->n;
-    int sum=0;
+    long long int sum=0;
     for(int i=0;i<n;i++){
         pthread_mutex_lock(&lock3);
         while(!run3) { /* We're paused */
@@ -140,7 +140,7 @@ int main()
                 // wait(NULL);
 
                 //shared memory here
-                shmid=shmget(2049,32,0666 | IPC_CREAT);
+                shmid=shmget(2041,32,0666 | IPC_CREAT);
                 shmPtr=shmat(shmid,0,0);
                 *shmPtr=0;
 
@@ -149,7 +149,7 @@ int main()
                 *(shmPtr+3)=0;
 
                 //scheduling here
-                int time_quantum=2;
+                int time_quantum=1;
 
                 sleep(5);
 
@@ -159,17 +159,17 @@ int main()
                 while((*(shmPtr+1)==0) || (*(shmPtr+2)==0) || (*(shmPtr+3)==0)){
                     if(to_do==1 && *(shmPtr+1)==0){
                         // pthread_cond_signal(&cond1);
-                        printf("sleeping for c1\n");
+                        printf("running c1\n");
                         sleep(time_quantum);
                     }
                     else if(to_do==2 && *(shmPtr+2)==0){
                         // pthread_cond_signal(&cond2);
-                        printf("sleeping for c2\n");
+                        printf("running c2\n");
                         sleep(time_quantum);
                     }
                     else if(to_do==3 && *(shmPtr+3)==0){
                         // pthread_cond_signal(&cond3);
-                        printf("sleeping for c3\n");
+                        printf("running c3\n");
                         sleep(time_quantum);
                     }
                     to_do=to_do+1;
@@ -182,7 +182,8 @@ int main()
                 printf("this is parent process\n");
                 close(fds_3[1]);
                 read(fds_3[0],buf_3,25);
-                printf("c3 sent %d to parent via pipe\n",atoi(buf_3));
+                char* eptr;
+                printf("c3 sent %lld to parent via pipe\n",strtoll(buf_3,&eptr,10));
 
                 close(fds_2[1]);
                 read(fds_2[0],buf_2,14);
@@ -190,7 +191,7 @@ int main()
 
                 close(fds_1[1]);
                 read(fds_1[0],buf_1,25);
-                printf("c1 sent %d to parent via pipe\n",atoi(buf_1));
+                printf("c1 sent %lld to parent via pipe\n",strtoll(buf_1,&eptr,10));
             }
             else{
                 //c3 process here
@@ -209,7 +210,7 @@ int main()
                 }
 
                 //shared mem
-                shmid=shmget(2049,32,0);
+                shmid=shmget(2041,32,0);
                 shmPtr=shmat(shmid,0,0);
 
                 while(!data.finished){
@@ -234,10 +235,10 @@ int main()
                 }
                 *(shmPtr+3)=1;
                 // pthread_join(thread_id_3,NULL);
-                printf("sum in c3 is %d\n",data.result);
+                printf("sum in c3 is %lld\n",data.result);
                 char str[30];
-                int len=snprintf(NULL,0,"%d",data.result)+1;
-                snprintf(str,len,"%d",data.result);
+                int len=snprintf(NULL,0,"%lld",data.result)+1;
+                snprintf(str,len,"%lld",data.result);
                 close(fds_3[0]);
                 write(fds_3[1],str,len);
             }
@@ -259,7 +260,7 @@ int main()
 			    exit(1);
             }
             //shared mem
-            shmid=shmget(2049,32,0);
+            shmid=shmget(2041,32,0);
             shmPtr=shmat(shmid,0,0);
 
             while(!data.finished){
@@ -305,7 +306,7 @@ int main()
 		    exit(1);
         }
         //shared mem
-        shmid=shmget(2049,32,0);
+        shmid=shmget(2041,32,0);
         shmPtr=shmat(shmid,0,0);
 
         while(!data.finished){
@@ -329,10 +330,10 @@ int main()
         }
         *(shmPtr+1)=1;
         // pthread_join(thread_id_1,NULL);
-        printf("sum in c1 is %d\n",data.result);
+        printf("sum in c1 is %lld\n",data.result);
         char str[30];
-        int len=snprintf(NULL,0,"%d",data.result)+1;
-        snprintf(str,len,"%d",data.result);
+        int len=snprintf(NULL,0,"%lld",data.result)+1;
+        snprintf(str,len,"%lld",data.result);
         close(fds_1[0]);
         write(fds_1[1],str,len);
     }
