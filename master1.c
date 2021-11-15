@@ -297,16 +297,18 @@ void RR(int n1,int n2,int n3)
                 while((*(shmPtr+1)==0) || (*(shmPtr+2)==0) || (*(shmPtr+3)==0)){
                     *shmPtr=to_do;
                     if(to_do==1 && *(shmPtr+1)==0){
-                        // gettimeofday(&tv,NULL);
-                        printf("Executing C1 at %ld\n",time(0));
+                        gettimeofday(&tv,NULL);
+                        printf("Executing C1 at %lf\n",(double)(1000000 * tv.tv_sec + tv.tv_usec)/1000000);
                         sleep(time_quantum);
                     }
                     else if(to_do==2 && *(shmPtr+2)==0){
-                        printf("Executing C2 at %ld\n",time(0));
+                        gettimeofday(&tv,NULL);
+                        printf("Executing C2 at %lf\n",(double)(1000000 * tv.tv_sec + tv.tv_usec)/1000000);
                         sleep(time_quantum);
                     }
                     else if(to_do==3 && *(shmPtr+3)==0){
-                        printf("Executing C3 at %ld\n",time(0));
+                        gettimeofday(&tv,NULL);
+                        printf("Executing C3 at %lf\n",(double)(1000000 * tv.tv_sec + tv.tv_usec)/1000000);
                         sleep(time_quantum);
                     }
                     to_do=to_do+1;
@@ -633,15 +635,18 @@ void FCFS(int n1,int n2,int n3)
                 while((*(shmPtr+1)==0) || (*(shmPtr+2)==0) || (*(shmPtr+3)==0)){
                     *shmPtr=to_do;
                     if(to_do==1 && *(shmPtr+1)==0){
-                        printf("Executing C1 at %ld\n",time(0));
+                        gettimeofday(&tv,NULL);
+                        printf("Executing C1 at %lf\n",(double)(1000000 * tv.tv_sec + tv.tv_usec)/1000000);
                         while(*(shmPtr+1)==0){}
                     }
                     else if(to_do==2 && *(shmPtr+2)==0){
-                        printf("Executing C2 at %ld\n",time(0));
+                        gettimeofday(&tv,NULL);
+                        printf("Executing C2 at %lf\n",(double)(1000000 * tv.tv_sec + tv.tv_usec)/1000000);
                         while(*(shmPtr+2)==0){}
                     }
                     else if(to_do==3 && *(shmPtr+3)==0){
-                        printf("Executing C3 at %ld\n",time(0));
+                        gettimeofday(&tv,NULL);
+                        printf("Executing C3 at %lf\n",(double)(1000000 * tv.tv_sec + tv.tv_usec)/1000000);
                         while(*(shmPtr+3)==0){}
                     }
                     to_do=to_do+1;
