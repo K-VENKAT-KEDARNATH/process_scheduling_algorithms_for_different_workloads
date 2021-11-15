@@ -41,13 +41,15 @@ typedef struct thread_data {
    long long int result;
    bool finished;
    double waiting_time;
+   time_t start_time;
 }thread_data;
 
 void *process_c2(void *data){
+    thread_data *tdata=(thread_data*)data;
+    tdata->start_time=time(0);
     FILE *fp;
     fp=fopen("Number.txt","r");
     int num;
-    thread_data *tdata=(thread_data*)data;
     int n=tdata->n;
     double start,end;
     double waiting_time=0;
@@ -71,13 +73,14 @@ void *process_c2(void *data){
 }
 
 void *process_c1(void *data){
-    long long int sum=0;
     thread_data *tdata=(thread_data*)data;
+    tdata->start_time=time(0);
+    long long int sum=0;
     // int* n1_ptr=(int*)n1;
     int n=tdata->n;
     double start,end;
     double waiting_time=0;
-    printf("run1 is %d\n",run1);
+    // printf("run1 is %d\n",run1);
     for(int j=1;j<=n;j++){
         pthread_mutex_lock(&lock1);
         while(!run1) { /* We're paused */
@@ -100,11 +103,12 @@ void *process_c1(void *data){
 
 void *process_c3(void *data){
     // while(pthread_cond_wait(&cond3, &lock3))
+    thread_data *tdata=(thread_data*)data;
+    tdata->start_time=time(0);
 
     FILE *fp;
     fp=fopen("Number.txt","r");
     int num;
-    thread_data *tdata=(thread_data*)data;
     int n=tdata->n;
     long long int sum=0;
     double start,end;
@@ -142,14 +146,16 @@ int main()
     scanf("%d %d %d",&n1,&n2,&n3);
     printf("Enter time quantum");
     scanf("%d",&time_quantum);
-    int fds_1[2],fds_2[2],fds_3[3],fds_1_time[2],fds_2_time[2],fds_3_time[2],fds_1_wtime[2],fds_2_wtime[2],fds_3_wtime[2];
+    int fds_1[2],fds_2[2],fds_3[3],fds_1_time[2],fds_2_time[2],fds_3_time[2],fds_1_wtime[2],fds_2_wtime[2],fds_3_wtime[2],fds_1_stime[2],fds_2_stime[2],fds_3_stime[2];
     pipe(fds_1);
     pipe(fds_1_time);
     pipe(fds_1_wtime);
+    pipe(fds_1_stime);
+
 
     char buf_1[30],buf_3[30],buf_2[30],buf_3_2[30],buf_1_2[30],buf_2_2[30];
 
-    shmid=shmget(2043,32,0666 | IPC_CREAT);
+    shmid=shmget(2045,32,0666 | IPC_CREAT);
                 shmPtr=shmat(shmid,0,0);
                 *shmPtr=-1;
 
@@ -167,6 +173,7 @@ int main()
         pipe(fds_2);
         pipe(fds_2_time);
         pipe(fds_2_wtime);
+        pipe(fds_2_stime);
 
         c2_pid=fork();
         if(c2_pid!=0){
@@ -178,6 +185,7 @@ int main()
             pipe(fds_3);
             pipe(fds_3_time);
             pipe(fds_3_wtime);
+            pipe(fds_3_stime);
 
             c3_pid=fork();
             if(c3_pid!=0){
@@ -185,7 +193,7 @@ int main()
                 // wait(NULL);
 
                 //shared memory here
-                // shmid=shmget(2043,32,0666 | IPC_CREAT);
+                // shmid=shmget(2045,32,0666 | IPC_CREAT);
                 // shmPtr=shmat(shmid,0,0);
                 // *shmPtr=-1;
 
@@ -195,8 +203,9 @@ int main()
 
                 //scheduling here
                 //int time_quantum=1;
-
+                time_t start_of_all;
                 sleep(5);
+                start_of_all=time(0);
 
                 printf("---------------STARTTING ALL PROCESSES-----------\n");
                 *shmPtr=1;
@@ -253,13 +262,22 @@ int main()
                 close(fds_1_time[1]);
                 read(fds_1_time[0],buf_1_2,25);
                 char* eptr3;
-                printf("time taken by c1 is %lf\n",strtod(buf_1_2,&eptr3));
-
+                // printf("time taken by c1 is %lld\n",strtoll(buf_1_2,&eptr3,10));
+                printf("exact ta of c1 is %lf\n",difftime(strtoll(buf_1_2,&eptr3,10),start_of_all)*1000);
                 close(fds_1_wtime[1]);
                 read(fds_1_wtime[0],buf_1_2,25);
                 // char* eptr3;
                 printf("waiting time of c1 is %lf\n",strtod(buf_1_2,&eptr3));
+                double wt=strtod(buf_1_2,&eptr3);
 
+                close(fds_1_stime[1]);
+                read(fds_1_stime[0],buf_1_2,25);
+                long long int s_ll=strtoll(buf_1_2,&eptr3,10);
+                // printf("s_ll in main is %lld\n",s_ll);
+                // char* eptr3;
+                printf("waiting time exact of c1 is %lf\n",wt-(difftime(start_of_all,s_ll)*1000));
+                // printf("above wt is %lf\n",wt);
+                // printf("remove %lf\n",difftime(start_of_all,s_ll)*1000);
                 close(fds_2[1]);
                 read(fds_2[0],buf_2,14);
                 printf("%s\n",buf_2);
@@ -268,6 +286,13 @@ int main()
                 read(fds_2_wtime[0],buf_2_2,25);
                 char* eptr4;
                 printf("waiting time of c2 is %lf\n",strtod(buf_2_2,&eptr4));
+
+                wt=strtod(buf_2_2,&eptr4);
+
+                close(fds_2_stime[1]);
+                read(fds_2_stime[0],buf_2_2,25);
+                s_ll=strtoll(buf_2_2,&eptr4,10);
+                printf("waiting time exact of c2 is %lf\n",wt-(difftime(start_of_all,s_ll)*1000));
 
                 close(fds_3[1]);
                 read(fds_3[0],buf_3,25);
@@ -283,6 +308,13 @@ int main()
                 read(fds_3_wtime[0],buf_3_2,25);
                 // char* eptr2;
                 printf("waiting time of c3 is %lf\n",strtod(buf_3_2,&eptr2));
+
+                wt=strtod(buf_3_2,&eptr2);
+
+                close(fds_3_stime[1]);
+                read(fds_3_stime[0],buf_3_2,25);
+                s_ll=strtoll(buf_3_2,&eptr2,10);
+                printf("waiting time exact of c1 is %lf\n",wt-(difftime(start_of_all,s_ll)*1000));
                 
                 // printf("Time taken by C1 is %lf\n",t1);
                 // printf("Time taken by C3 is %lf\n",t3);
@@ -305,7 +337,7 @@ int main()
                 }
 
                 //shared mem
-                shmid=shmget(2043,32,0);
+                shmid=shmget(2045,32,0);
                 shmPtr=shmat(shmid,0,0);
 
                 while(!data.finished){
@@ -350,6 +382,12 @@ int main()
                 snprintf(str3,len3,"%lf",data.waiting_time);
                 close(fds_3_wtime[0]);
                 write(fds_3_wtime[1],str3,len3);
+
+                char str4[25];
+                int len4=snprintf(NULL,0,"%lld",(long long int)data.start_time)+1;
+                snprintf(str4,len4,"%lld",(long long int)data.start_time);
+                close(fds_3_stime[0]);
+                write(fds_3_stime[1],str4,len4);
             }
         }
         else{
@@ -370,7 +408,7 @@ int main()
 			    exit(1);
             }
             //shared mem
-            shmid=shmget(2043,32,0);
+            shmid=shmget(2045,32,0);
             shmPtr=shmat(shmid,0,0);
 
             while(!data.finished){
@@ -413,6 +451,12 @@ int main()
             snprintf(str3,len3,"%lf",data.waiting_time);
             close(fds_2_wtime[0]);
             write(fds_2_wtime[1],str3,len3);
+
+            char str4[25];
+            int len4=snprintf(NULL,0,"%lld",(long long int)data.start_time)+1;
+            snprintf(str4,len4,"%lld",(long long int)data.start_time);
+            close(fds_2_stime[0]);
+            write(fds_2_stime[1],str4,len4);
         }
     }
     else{
@@ -432,7 +476,7 @@ int main()
 		    exit(1);
         }
         //shared mem
-        shmid=shmget(2043,32,0);
+        shmid=shmget(2045,32,0);
         shmPtr=shmat(shmid,0,0);
 
         s1=time(0);
@@ -472,15 +516,24 @@ int main()
         t1=difftime(e1,s1)*1000;
         // printf("Time taken for C1 process %lf\n",t1);
         char str2[25];
-        int len2=snprintf(NULL,0,"%lf",t1)+1;
-        snprintf(str2,len2,"%lf",t1);
+        long long int e1_ll=(long long int)e1;
+        int len2=snprintf(NULL,0,"%lld",e1_ll)+1;
+        snprintf(str2,len2,"%lld",e1_ll);
         close(fds_1_time[0]);
         write(fds_1_time[1],str2,len2);
 
         char str3[25];
-        int len3=snprintf(NULL,0,"%lf",data.waiting_time)+1;
-        snprintf(str3,len3,"%lf",data.waiting_time);
+        long long int s_ll=(long long int)data.start_time;
+        // printf("s_ll is %lld\n",s_ll);
+        int len3=snprintf(NULL,0,"%lld",s_ll)+1;
+        snprintf(str3,len3,"%lld",s_ll);
+        close(fds_1_stime[0]);
+        write(fds_1_stime[1],str3,len3);
+
+        char str4[25];
+        int len4=snprintf(NULL,0,"%lf",data.waiting_time)+1;
+        snprintf(str4,len4,"%lf",data.waiting_time);
         close(fds_1_wtime[0]);
-        write(fds_1_wtime[1],str3,len3);
+        write(fds_1_wtime[1],str4,len4);
     }
 }
