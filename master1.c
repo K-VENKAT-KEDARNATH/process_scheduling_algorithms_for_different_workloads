@@ -1,3 +1,12 @@
+//    Name                        and  ID number
+// 1. K VENKAT KEDARNATH           -   2019A7PS0155H
+// 2. KOMARAGIRI ABHIGNA SRIKALA   -   2019A7PS0047H
+// 3. JAYANT LINGAMANENI K         -   2019A7PS0005H
+// 4. SAI TUSHAR BANDARU           -   2019A7PS0046H
+// 5. KOMARAGIRI BHARATH           -   2019A7PS0098H
+// 6. ARYAMAN KRISHNA VELAMPALLI   -   2019A7PS0140H
+// 7. MOHAN TEJA MUKKA             -   2019A7PS0056H
+// 8. R SURESH                     -   2019A7PS0188H
 
 #include<stdio.h>
 #include<unistd.h>
@@ -366,7 +375,7 @@ void RR(int n1,int n2,int n3)
                 read(fds_3_time[0],buf_3_2,25);
                 char* eptr2;
                 double ta_c3=(double)(strtoul(buf_3_2,&eptr2,10)-start_of_all)/1000000;
-                printf("Turnarounf time of C3 is %lf sec\n",ta_c3);
+                printf("Turnaround time of C3 is %lf sec\n",ta_c3);
 
                 close(fds_3_wtime[1]);
                 read(fds_3_wtime[0],buf_3_2,25);
@@ -702,7 +711,7 @@ void FCFS(int n1,int n2,int n3)
                 read(fds_3_time[0],buf_3_2,25);
                 char* eptr2;
                 double ta_c3=(double)(strtoul(buf_3_2,&eptr2,10)-start_of_all)/1000000;
-                printf("Turnarounf time of C3 is %lf sec\n",ta_c3);
+                printf("Turnaround time of C3 is %lf sec\n",ta_c3);
 
                 close(fds_3_wtime[1]);
                 read(fds_3_wtime[0],buf_3_2,25);
