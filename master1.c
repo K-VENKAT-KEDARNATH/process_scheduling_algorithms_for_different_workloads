@@ -364,7 +364,7 @@ void RR(int n1,int n2,int n3)
                 char* eptr3;
                 // printf("time taken by c1 is %lld\n",strtoll(buf_1_2,&eptr3,10));
                 // printf("exact ta of c1 is %lf\n",difftime(strtoll(buf_1_2,&eptr3,10),start_of_all)*1000);
-                double ta_c1=(strtoul(buf_1_2,&eptr3,10)-start_of_all)/1000000;
+                double ta_c1=(double)(strtoul(buf_1_2,&eptr3,10)-start_of_all)/1000000;
                 printf("Turnaround time of C1 is %lf sec\n",ta_c1);
 
                 close(fds_1_wtime[1]);
@@ -395,8 +395,8 @@ void RR(int n1,int n2,int n3)
                 // char* eptr3;
                 // printf("time taken by c1 is %lld\n",strtoll(buf_1_2,&eptr3,10));
                 // printf("exact ta of c1 is %lf\n",difftime(strtoll(buf_1_2,&eptr3,10),start_of_all)*1000);
-                double ta_c2=(strtoul(buf_2_2,&eptr3,10)-start_of_all)/1000000;
-                printf("Turnaround time of C1 is %lf sec\n",ta_c2);
+                double ta_c2=(double)(strtoul(buf_2_2,&eptr3,10)-start_of_all)/1000000;
+                printf("Turnaround time of C2 is %lf sec\n",ta_c2);
 
                 close(fds_2_wtime[1]);
                 read(fds_2_wtime[0],buf_2_2,25);
@@ -422,7 +422,7 @@ void RR(int n1,int n2,int n3)
                 close(fds_3_time[1]);
                 read(fds_3_time[0],buf_3_2,25);
                 char* eptr2;
-                double ta_c3=(strtoul(buf_3_2,&eptr2,10)-start_of_all)/1000000;
+                double ta_c3=(double)(strtoul(buf_3_2,&eptr2,10)-start_of_all)/1000000;
                 // printf("exact ta of c3 is %lf\n",difftime(strtoll(buf_3_2,&eptr2,10),start_of_all)*1000);
                 printf("Turnarounf time of C3 is %lf sec\n",ta_c3);
 
@@ -437,19 +437,14 @@ void RR(int n1,int n2,int n3)
                 read(fds_3_stime[0],buf_3_2,25);
                 s_ll=strtoul(buf_3_2,&eptr2,10);
                 double wt_c3=(wt-(double)(start_of_all-s_ll))/1000000;
-                printf("Waiting time exact of C3 is %lf\n",wt_c3);
+                printf("Waiting time of C3 is %lf sec\n",wt_c3);
 
-                printf("Execution time of C3 is %lf\n",ta_c3-wt_c3);
+                printf("Execution time of C3 is %lf sec\n",ta_c3-wt_c3);
                 
                 // printf("Time taken by C1 is %lf\n",t1);
                 // printf("Time taken by C3 is %lf\n",t3);
             }
             else{
-                //c3 process here
-                // printf("enter n3: ");
-                // scanf("%d",&n3);
-                //n3=100000000;
-                // s3=time(0);
                 struct timeval tv;
                 gettimeofday(&tv,NULL);
                 unsigned long s3_in_micros = 1000000 * tv.tv_sec + tv.tv_usec;
@@ -469,22 +464,21 @@ void RR(int n1,int n2,int n3)
                 shmPtr=shmat(shmid,0,0);
 
                 while(!data.finished){
-                    // pthread_cond_wait(&cond3, &lock3);
+//The below statement checks if the parent process has told C3 to start
+//We have implemented using shared memory because we can constantly look at the shared data
+//and can decide which process to run
                     if((*shmPtr)==3){
                         pthread_mutex_lock(&lock3);
                         run3 = 1;
                         // printf("signalling c3\n");
                         pthread_cond_signal(&cond3);
+//the above line signals the thread which is waiting 
                         pthread_mutex_unlock(&lock3);
-                        // pthread_cond_signal(&cond3);
                         while((*shmPtr)==3){
 
                         }
-                        // pthread_cond_wait(&cond3, &lock);
-                        // run3=0;
                         pthread_mutex_lock(&lock3);
                         run3 = 0;
-                        // printf("pause c3\n");
                         pthread_mutex_unlock(&lock3);
                     }
                 }
@@ -817,7 +811,10 @@ void FCFS(int n1,int n2,int n3)
                 char* eptr3;
                 // printf("time taken by c1 is %lld\n",strtoll(buf_1_2,&eptr3,10));
                 // printf("exact ta of c1 is %lf\n",difftime(strtoll(buf_1_2,&eptr3,10),start_of_all)*1000);
-                printf("exact ta of c1 is %lu\n",strtoul(buf_1_2,&eptr3,10)-start_of_all);
+                double ta_c1=(double)(strtoul(buf_1_2,&eptr3,10)-start_of_all)/1000000;
+                // printf("start of all %lu\n",start_of_all);
+                // printf("%lu\n",strtoul(buf_1_2,&eptr3,10));
+                printf("Turnaround time of C1 is %lf sec\n",ta_c1);
 
                 close(fds_1_wtime[1]);
                 read(fds_1_wtime[0],buf_1_2,25);
@@ -830,12 +827,25 @@ void FCFS(int n1,int n2,int n3)
                 unsigned long s_ll=strtoul(buf_1_2,&eptr3,10);
                 // printf("s_ll in main is %lld\n",s_ll);
                 // char* eptr3;
-                printf("waiting time exact of c1 is %lf\n",wt-(double)(start_of_all-s_ll));
+                double wt_c1=(wt-(double)(start_of_all-s_ll))/1000000;
+                printf("Waiting time of C1 is %lf sec\n",wt_c1);
+                printf("Execution time of C1 is %lf sec\n",ta_c1-wt_c1);
                 // printf("above wt is %lf\n",wt);
                 // printf("remove %lf\n",difftime(start_of_all,s_ll)*1000);
+
+                printf("----------------------\n");
+
                 close(fds_2[1]);
                 read(fds_2[0],buf_2,14);
-                printf("%s\n",buf_2);
+                printf("C2 has sent '%s' to parent via pipe\n",buf_2);
+
+                close(fds_2_time[1]);
+                read(fds_2_time[0],buf_2_2,25);
+                // char* eptr3;
+                // printf("time taken by c1 is %lld\n",strtoll(buf_1_2,&eptr3,10));
+                // printf("exact ta of c1 is %lf\n",difftime(strtoll(buf_1_2,&eptr3,10),start_of_all)*1000);
+                double ta_c2=(double)(strtoul(buf_2_2,&eptr3,10)-start_of_all)/1000000;
+                printf("Turnaround time of C2 is %lf sec\n",ta_c2);
 
                 close(fds_2_wtime[1]);
                 read(fds_2_wtime[0],buf_2_2,25);
@@ -847,19 +857,23 @@ void FCFS(int n1,int n2,int n3)
                 close(fds_2_stime[1]);
                 read(fds_2_stime[0],buf_2_2,25);
                 s_ll=strtoul(buf_2_2,&eptr4,10);
-                printf("waiting time exact of c2 is %lf\n",wt-(double)(start_of_all-s_ll));
+                double wt_c2=(wt-(double)(start_of_all-s_ll))/1000000;
+                printf("Waiting time of C2 is %lf sec\n",wt_c2);
+                printf("Execution time of C2 is %lf sec\n",ta_c2-wt_c2);
+
+                printf("----------------------\n");
 
                 close(fds_3[1]);
                 read(fds_3[0],buf_3,25);
                 // char* eptr;
-                printf("c3 sent %lld to parent via pipe\n",strtoll(buf_3,&eptr,10));
+                printf("C3 sent %lld to parent via pipe\n",strtoll(buf_3,&eptr,10));
 
                 close(fds_3_time[1]);
                 read(fds_3_time[0],buf_3_2,25);
                 char* eptr2;
+                double ta_c3=(double)(strtoul(buf_3_2,&eptr2,10)-start_of_all)/1000000;
                 // printf("exact ta of c3 is %lf\n",difftime(strtoll(buf_3_2,&eptr2,10),start_of_all)*1000);
-                printf("exact ta of c3 is %lu\n",strtoul(buf_3_2,&eptr2,10)-start_of_all);
-
+                printf("Turnarounf time of C3 is %lf sec\n",ta_c3);
 
                 close(fds_3_wtime[1]);
                 read(fds_3_wtime[0],buf_3_2,25);
@@ -871,10 +885,10 @@ void FCFS(int n1,int n2,int n3)
                 close(fds_3_stime[1]);
                 read(fds_3_stime[0],buf_3_2,25);
                 s_ll=strtoul(buf_3_2,&eptr2,10);
-                printf("waiting time exact of c3 is %lf\n",wt-(double)(start_of_all-s_ll));
-                
-                // printf("Time taken by C1 is %lf\n",t1);
-                // printf("Time taken by C3 is %lf\n",t3);
+                double wt_c3=(wt-(double)(start_of_all-s_ll))/1000000;
+                printf("Waiting time of C3 is %lf sec\n",wt_c3);
+
+                printf("Execution time of C3 is %lf sec\n",ta_c3-wt_c3);
             }
             else{
                 //c3 process here
@@ -963,7 +977,10 @@ void FCFS(int n1,int n2,int n3)
             //printf("enter n2: ");
             //scanf("%d",&n2);
             //n2=10000;
-            s2=time(0);
+            // s2=time(0);
+            struct timeval tv;
+            gettimeofday(&tv,NULL);
+            unsigned long s2_in_micros = 1000000 * tv.tv_sec + tv.tv_usec;
             printf("entered n2 is %d\n",n2);
             pthread_t thread_id_2;
             thread_data_fcfs data;
@@ -1008,26 +1025,31 @@ void FCFS(int n1,int n2,int n3)
             
             close(fds_2[0]);
             write(fds_2[1],"Done Printing",14);
-            e2=time(0);
-            t2=difftime(e2,s2)*1000;
-            printf("Time taken for C2 process %lf\n",t2);
+            gettimeofday(&tv,NULL);
+            unsigned long e2_in_micros = 1000000 * tv.tv_sec + tv.tv_usec;
+
+            // t1=difftime(e1,s1)*1000;
+            // printf("Time taken for C1 process %lf\n",t1);
             char str2[25];
-            int len2=snprintf(NULL,0,"%lf",t2)+1;
-            snprintf(str2,len2,"%lf",t2);
+            // long long int e1_ll=(long long int)e1;
+            int len2=snprintf(NULL,0,"%lu",e2_in_micros)+1;
+            snprintf(str2,len2,"%lu",e2_in_micros);
             close(fds_2_time[0]);
             write(fds_2_time[1],str2,len2);
 
             char str3[25];
-            int len3=snprintf(NULL,0,"%lf",data.waiting_time)+1;
-            snprintf(str3,len3,"%lf",data.waiting_time);
-            close(fds_2_wtime[0]);
-            write(fds_2_wtime[1],str3,len3);
+            // long long int s_ll=(long long int)data.start_time;
+            // printf("s_ll is %lld\n",s_ll);
+            int len3=snprintf(NULL,0,"%lu",data.start_time)+1;
+            snprintf(str3,len3,"%lu",data.start_time);
+            close(fds_2_stime[0]);
+            write(fds_2_stime[1],str3,len3);
 
             char str4[25];
-            int len4=snprintf(NULL,0,"%lu",data.start_time)+1;
-            snprintf(str4,len4,"%lu",data.start_time);
-            close(fds_2_stime[0]);
-            write(fds_2_stime[1],str4,len4);
+            int len4=snprintf(NULL,0,"%lf",data.waiting_time)+1;
+            snprintf(str4,len4,"%lf",data.waiting_time);
+            close(fds_2_wtime[0]);
+            write(fds_2_wtime[1],str4,len4);
         }
     }
     else{
@@ -1070,7 +1092,7 @@ void FCFS(int n1,int n2,int n3)
         gettimeofday(&tv,NULL);
         unsigned long e1_in_micros = 1000000 * tv.tv_sec + tv.tv_usec;
 
-        t1=difftime(e1,s1)*1000;
+        // t1=difftime(e1,s1)*1000;
         // printf("Time taken for C1 process %lf\n",t1);
         char str2[25];
         // long long int e1_ll=(long long int)e1;
