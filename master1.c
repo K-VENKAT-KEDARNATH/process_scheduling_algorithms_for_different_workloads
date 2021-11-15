@@ -251,7 +251,7 @@ void RR(int n1,int n2,int n3)
     int time_quantum;
     printf("Enter time quantum: ");
     scanf("%d",&time_quantum);
-    int fds_1[2],fds_2[2],fds_3[3],fds_1_time[2],fds_2_time[2],fds_3_time[2],fds_1_wtime[2],fds_2_wtime[2],fds_3_wtime[2],fds_1_stime[2],fds_2_stime[2],fds_3_stime[2];
+    int fds_1[2],fds_2[2],fds_3[3],fds_1_time[2],fds_2_time[2],fds_3_time[2],fds_1_wtime[2],fds_2_wtime[2],fds_3_wtime[2],fds_1_stime[2],fds_2_stime[2],fds_3_stime[2],fds_2_parent_to_child[2];
     pipe(fds_1);
     pipe(fds_1_time);
     pipe(fds_1_wtime);
@@ -275,6 +275,7 @@ void RR(int n1,int n2,int n3)
         pipe(fds_2_time);
         pipe(fds_2_wtime);
         pipe(fds_2_stime);
+        pipe(fds_2_parent_to_child);
 
         c2_pid=fork();
         if(c2_pid!=0){
@@ -290,6 +291,12 @@ void RR(int n1,int n2,int n3)
                 struct timeval tv;
                 gettimeofday(&tv,NULL);
                 unsigned long start_of_all = 1000000 * tv.tv_sec + tv.tv_usec;
+
+                char str[30];
+                int len=snprintf(NULL,0,"%lu",start_of_all)+1;
+                snprintf(str,len,"%lu",start_of_all);
+                close(fds_2_parent_to_child[0]);
+                write(fds_2_parent_to_child[1],str,len);
 
                 printf("---------------STARTTING ALL PROCESSES-----------\n");
                 *shmPtr=1;
@@ -501,6 +508,13 @@ void RR(int n1,int n2,int n3)
             gettimeofday(&tv,NULL);
             unsigned long e2_in_micros = 1000000 * tv.tv_sec + tv.tv_usec;
 
+            char buf[30];
+            close(fds_2_parent_to_child[1]);
+            read(fds_2_parent_to_child[0],buf,25);
+
+            char* eptr;
+            printf("Turnaround time of C2 is %lf sec\n",(double)(e2_in_micros-strtoul(buf,&eptr,10))/1000000);
+
             char str2[25];
             int len2=snprintf(NULL,0,"%lu",e2_in_micros)+1;
             snprintf(str2,len2,"%lu",e2_in_micros);
@@ -588,7 +602,7 @@ void RR(int n1,int n2,int n3)
 void FCFS(int n1,int n2,int n3)
 {
     int c1_pid,c2_pid,c3_pid;
-    int fds_1[2],fds_2[2],fds_3[3],fds_1_time[2],fds_2_time[2],fds_3_time[2],fds_1_wtime[2],fds_2_wtime[2],fds_3_wtime[2],fds_1_stime[2],fds_2_stime[2],fds_3_stime[2];
+    int fds_1[2],fds_2[2],fds_3[3],fds_1_time[2],fds_2_time[2],fds_3_time[2],fds_1_wtime[2],fds_2_wtime[2],fds_3_wtime[2],fds_1_stime[2],fds_2_stime[2],fds_3_stime[2],fds_2_parent_to_child[2];
     pipe(fds_1);
     pipe(fds_1_time);
     pipe(fds_1_wtime);
@@ -612,6 +626,7 @@ void FCFS(int n1,int n2,int n3)
         pipe(fds_2_time);
         pipe(fds_2_wtime);
         pipe(fds_2_stime);
+        pipe(fds_2_parent_to_child);
 
         c2_pid=fork();
         if(c2_pid!=0){
@@ -655,6 +670,11 @@ void FCFS(int n1,int n2,int n3)
                     }
                 }
 
+                char str[30];
+                int len=snprintf(NULL,0,"%lu",start_of_all)+1;
+                snprintf(str,len,"%lu",start_of_all);
+                close(fds_2_parent_to_child[0]);
+                write(fds_2_parent_to_child[1],str,len);
 
                 printf("----------------------\n");
                 printf("Printing in Parent process\n");
@@ -816,6 +836,13 @@ void FCFS(int n1,int n2,int n3)
             write(fds_2[1],"Done Printing",14);
             gettimeofday(&tv,NULL);
             unsigned long e2_in_micros = 1000000 * tv.tv_sec + tv.tv_usec;
+
+            char buf[30];
+            close(fds_2_parent_to_child[1]);
+            read(fds_2_parent_to_child[0],buf,25);
+
+            char* eptr;
+            printf("Turnaround time of C2 is %lf sec\n",(double)(e2_in_micros-strtoul(buf,&eptr,10))/1000000);
 
             char str2[25];
             int len2=snprintf(NULL,0,"%lu",e2_in_micros)+1;
