@@ -295,23 +295,24 @@ void RR(int n1,int n2,int n3)
                 *shmPtr=1;
 
                 while((*(shmPtr+1)==0) || (*(shmPtr+2)==0) || (*(shmPtr+3)==0)){
+                    *shmPtr=to_do;
                     if(to_do==1 && *(shmPtr+1)==0){
-                        printf("Executing C1\n");
+                        // gettimeofday(&tv,NULL);
+                        printf("Executing C1 at %ld\n",time(0));
                         sleep(time_quantum);
                     }
                     else if(to_do==2 && *(shmPtr+2)==0){
-                        printf("Executing C2\n");
+                        printf("Executing C2 at %ld\n",time(0));
                         sleep(time_quantum);
                     }
                     else if(to_do==3 && *(shmPtr+3)==0){
-                        printf("Executing C3\n");
+                        printf("Executing C3 at %ld\n",time(0));
                         sleep(time_quantum);
                     }
                     to_do=to_do+1;
                     if(to_do==4){
                         to_do=1;
                     }
-                    *shmPtr=to_do;
                 }
 
 
@@ -492,7 +493,7 @@ void RR(int n1,int n2,int n3)
                 }
             }
             *(shmPtr+2)=1;
-            
+            printf("Done printing\n");
             close(fds_2[0]);
             write(fds_2[1],"Done Printing",14);
             gettimeofday(&tv,NULL);
@@ -630,23 +631,23 @@ void FCFS(int n1,int n2,int n3)
                 *shmPtr=1;
 
                 while((*(shmPtr+1)==0) || (*(shmPtr+2)==0) || (*(shmPtr+3)==0)){
+                    *shmPtr=to_do;
                     if(to_do==1 && *(shmPtr+1)==0){
-                        printf("Executing C1\n");
+                        printf("Executing C1 at %ld\n",time(0));
                         while(*(shmPtr+1)==0){}
                     }
                     else if(to_do==2 && *(shmPtr+2)==0){
-                        printf("Executing C2\n");
+                        printf("Executing C2 at %ld\n",time(0));
                         while(*(shmPtr+2)==0){}
                     }
                     else if(to_do==3 && *(shmPtr+3)==0){
-                        printf("Executing C3\n");
+                        printf("Executing C3 at %ld\n",time(0));
                         while(*(shmPtr+3)==0){}
                     }
                     to_do=to_do+1;
                     if(to_do==4){
                         to_do=1;
                     }
-                    *shmPtr=to_do;
                 }
 
 
@@ -804,7 +805,8 @@ void FCFS(int n1,int n2,int n3)
             run2=1;
             while(!data.finished){}
             *(shmPtr+2)=1;
-            
+            printf("Done printing\n");
+        
             close(fds_2[0]);
             write(fds_2[1],"Done Printing",14);
             gettimeofday(&tv,NULL);
